@@ -56,11 +56,12 @@ end
 function love.load()
   font = love.graphics.newFont("Verdana.ttf", fontSize)
   love.graphics.setFont(font)
+  start = love.timer.getTime()
   layoutText()
 end
 
 function love.textinput(t)
-  text = string.sub(text, 1, cursor - 1) .. t .. string.sub(text, cursor)
+  text = string.sub(text, 1, cursor) .. t .. string.sub(text, cursor + 1)
   layoutText()
   cursor = cursor + 1
 end
@@ -120,8 +121,8 @@ function love.draw()
     charOffset = 0
 
     for j, charData in ipairs(line) do
-      if chars == cursor then
-        love.graphics.rectangle("fill", charOffset, lineOffset, 3, fontSize)
+      if chars == cursor and math.floor((love.timer.getTime() - start) * 2) % 2 == 0 then
+        love.graphics.rectangle("fill", charOffset, lineOffset, 1, fontSize * 1.4)
       end
       love.graphics.print(charData.char, charOffset, lineOffset)
 
