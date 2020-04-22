@@ -19,6 +19,7 @@ end
 function layoutText()
   -- go through text, generate lines based off of character width of each.
   -- ignore newlines for now!
+  lines = {}
   lineWidth = 0
   line = {}
 
@@ -59,7 +60,8 @@ function love.load()
 end
 
 function love.textinput(t)
-  table.insert(text, cursor + 1, t)
+  text = string.sub(text, 1, cursor - 1) .. t .. string.sub(text, cursor)
+  layoutText()
   cursor = cursor + 1
 end
 
@@ -90,7 +92,11 @@ function love.mousepressed()
     offset = 0
     for i, charData in ipairs(line) do
       if x < offset + charData.width then
-        cursor = chars
+        if x - offset < charData.width / 2 then
+          cursor = chars 
+        else 
+          cursor = chars + 1
+        end
         if lineIndex > 1 then
           for i = 1, lineIndex - 1 do
             cursor = cursor + table.getn(lines[i])
