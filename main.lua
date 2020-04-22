@@ -7,15 +7,6 @@ local lineHeight = 1.5
 local fontSize = 18
 local width = 600
 
-function wordWidth(string) 
-  width = 0
-  for i = 1, #string do
-    char = string:sub(i, i)
-    width = width + font:getWidth(char)
-  end
-  return width
-end
-
 function layoutText()
   -- go through text, generate lines based off of character width of each.
   -- ignore newlines for now!
@@ -76,7 +67,9 @@ function love.keypressed(key)
   end
 
   if key == "backspace" then
-    table.remove(text, cursor)
+    --table.remove(text, cursor)
+    text = string.sub(text, 1, cursor - 2) .. string.sub(text, cursor)
+    layoutText()
     cursor = cursor - 1
   end
 end
