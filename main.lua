@@ -5,9 +5,18 @@ start = love.timer.getTime()
 local text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" 
 local cursor = 1
 local lines = {} -- text split up into lines 
-local lineHeight = 1.5 -- means
+local lineHeight = 1.5
 local fontSize = 18
 local width = 600
+
+function wordWidth(string) 
+  width = 0
+  for i = 1, #string do
+    char = string:sub(i, i)
+    width = width + font:getWidth(char)
+  end
+  return width
+end
 
 function layoutText()
   -- go through text, generate lines based off of character width of each.
@@ -16,22 +25,31 @@ function layoutText()
   line = {}
 
   table.insert(lines, line)
+  spaceWidth = font:getWidth(" ")
 
-  for i = 1, #text do
-    char = text:sub(i, i)
-    charWidth = font:getWidth(char)
-    lineWidth = lineWidth + charWidth
-    charData = {char = char, width = charWidth}
+  spaceLeft = width
+  for word in string.gmatch(text, "%S+") do
+    chars = {}
+    wordWidth = 0
 
-    if lineWidth > width then
-      -- start new line
-      lineWidth = charWidth
-      line = {}
+    for i = 1, #word do
+      char = word:sub(i, i)
+      charWidth = font:getWidth(char)
+      charData = {char = char, width = charWidth}
+      table.insert(chars, charData)
+      wordWidth = wordWidth + charWidth
+    end
+    table.insert(chars, {char = " ", width = spaceWidth})
+
+    if wordWidth + spaceWidth > spaceLeft then
+      line = chars
       table.insert(lines, line)
-      table.insert(line, charData)
+      spaceLeft = width - wordWidth
     else
-      -- append char to current line
-      table.insert(line, charData)
+      for k, char in ipairs(chars) do
+        table.insert(line, char)
+      end
+      spaceLeft = spaceLeft - wordWidth + spaceWidth
     end
   end
 end
