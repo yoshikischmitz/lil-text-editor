@@ -78,6 +78,18 @@ function love.keypressed(key)
   end
 end
 
+function love.update()
+  x = love.mouse:getX()
+  y = love.mouse:getY()
+  -- TODO make this nicer to account for subtle area in line gap
+  lineIndex = 1 + math.floor(y / (fontSize * lineHeight))
+  if(lineIndex < table.getn(lines)) then
+    line = lines[lineIndex]
+    print(line)
+    print(line[1].char)
+  end
+end
+
 function love.draw()
   love.graphics.clear()
   love.graphics.setColor(255, 255, 0)
