@@ -6,6 +6,7 @@ local lines = {} -- text split up into lines
 local lineHeight = 1.5
 local fontSize = 18
 local width = 600
+local selectionEnd = nil
 
 function layoutText()
   -- go through text, generate lines based off of character width of each.
@@ -74,7 +75,13 @@ function love.keypressed(key)
   end
 end
 
-function love.mousepressed()
+function love.mousemoved()
+  if love.mouse.isDown(1) then
+
+  end
+end
+
+function mouseToIndex()
   x = love.mouse:getX()
   y = love.mouse:getY()
   -- TODO make this nicer to account for subtle area in line gap
@@ -84,23 +91,32 @@ function love.mousepressed()
   if(lineIndex < table.getn(lines) + 1) then
     line = lines[lineIndex]
     offset = 0
+    for i = 1, lineIndex - 1 do
+      chars = chars + table.getn(lines[i])
+    end
+
     for i, charData in ipairs(line) do
       if x < offset + charData.width then
         if x - offset < charData.width / 2 then
-          cursor = chars 
+          return chars
         else 
-          cursor = chars + 1
+          return chars + 1
         end
-        if lineIndex > 1 then
-          for i = 1, lineIndex - 1 do
-            cursor = cursor + table.getn(lines[i])
-          end
-        end
-        break
       end
+
       offset = offset + charData.width
       chars = chars + 1
     end
+
+    return chars - 1
+  end
+  return nil
+end
+
+function love.mousepressed()
+  newCursor = mouseToIndex()
+  if newCursor then
+    cursor = newCursor
   end
 end
 
