@@ -68,8 +68,13 @@ function love.keypressed(key)
   end
 
   if key == "backspace" then
-    --table.remove(text, cursor)
-    text = string.sub(text, 1, cursor - 2) .. string.sub(text, cursor)
+    if selectionEnd then
+       text = string.sub(text, 1, cursor - 1) .. string.sub(text, selectionEnd)
+       cursor = cursor + 1
+       selectionEnd = nil
+    else
+       text = string.sub(text, 1, cursor - 2) .. string.sub(text, cursor)
+    end
     layoutText()
     cursor = cursor - 1
   end
@@ -167,7 +172,7 @@ function love.draw()
           local iy = selStart.y + (fontSize * lineHeight)
           love.graphics.rectangle("fill", 0, iy, width, selEnd.y - iy)
           -- last line
-          love.graphics.rectangle("fill", 0, selEnd.y, selEnd.x + selEnd.width, fontSize * lineHeight)
+          love.graphics.rectangle("fill", 0, selEnd.y, selEnd.x , fontSize * lineHeight)
       end
       love.graphics.setBlendMode("alpha")
   end
