@@ -6,7 +6,7 @@ local lines = {} -- text split up into lines
 local lineHeight = 1.5
 local fontSize = 18
 local width = 600
-local selectionEnd = nil
+local selectionEnd = 100
 
 function layoutText()
   -- go through text, generate lines based off of character width of each.
@@ -32,15 +32,15 @@ function layoutText()
     end
     table.insert(chars, {char = " ", width = spaceWidth})
 
-    if wordWidth + spaceWidth > spaceLeft then
+    if wordWidth + spaceWidth >= spaceLeft then
       line = chars
       table.insert(lines, line)
-      spaceLeft = width - wordWidth
+      spaceLeft = width - (wordWidth + spaceWidth)
     else
       for k, char in ipairs(chars) do
         table.insert(line, char)
       end
-      spaceLeft = spaceLeft - wordWidth + spaceWidth
+      spaceLeft = spaceLeft - (wordWidth + spaceWidth)
     end
   end
 end
@@ -77,7 +77,7 @@ end
 
 function love.mousemoved()
   if love.mouse.isDown(1) then
-
+      selectionEnd = mouseToIndex()
   end
 end
 
@@ -115,10 +115,12 @@ end
 
 function love.mousepressed()
   newCursor = mouseToIndex()
+  selectionEnd = nil
   if newCursor then
     cursor = newCursor
   end
 end
+
 
 function love.draw()
   love.graphics.clear()
@@ -126,18 +128,47 @@ function love.draw()
 
   lineOffset = 0
   local chars = 1
+  local selStart = {}
+  local selEnd= {}
   for i, line in ipairs(lines) do
     charOffset = 0
 
     for j, charData in ipairs(line) do
-      if chars == cursor and math.floor((love.timer.getTime() - start) * 2) % 2 == 0 then
-        love.graphics.rectangle("fill", charOffset, lineOffset, 1, fontSize * 1.4)
+      if chars == cursor then
+         selStart = {charData = charData, line = i, x = charOffset, y = lineOffset, width = charData.width}
+         if math.floor((love.timer.getTime() - start) * 2) % 2 == 0 then
+          love.graphics.rectangle("fill", charOffset, lineOffset, 1, fontSize * 1.4)
+        end         
       end
+
+      if chars == selectionEnd then
+          selEnd = {charData = charData, line = i, x = charOffset, y = lineOffset, width = charData.width}
+      end
+
       love.graphics.print(charData.char, charOffset, lineOffset)
 
       charOffset = charOffset + charData.width
       chars = chars + 1
     end
     lineOffset = lineOffset + (fontSize * lineHeight)
+  end
+--  love.graphics.rectangle("fill", 0, 0, width, 10)
+
+  if selectionEnd then
+      local numLines = selEnd.line - selStart.line
+      love.graphics.setBlendMode("add")
+      love.graphics.setColor(0, 0, 255)
+      if numLines == 0 then
+          love.graphics.rectangle("fill", selStart.x, selStart.y, selEnd.x - selStart.x, fontSize * lineHeight)
+      else
+          -- first line
+          love.graphics.rectangle("fill", selStart.x, selStart.y, width - (selStart.x ), fontSize * lineHeight)
+          -- intermediate lines
+          local iy = selStart.y + (fontSize * lineHeight)
+          love.graphics.rectangle("fill", 0, iy, width, selEnd.y - iy)
+          -- last line
+          love.graphics.rectangle("fill", 0, selEnd.y, selEnd.x + selEnd.width, fontSize * lineHeight)
+      end
+      love.graphics.setBlendMode("alpha")
   end
 end
