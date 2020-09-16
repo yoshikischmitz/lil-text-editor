@@ -1,5 +1,6 @@
-
-local text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" 
+-- TODO: fix spaces
+-- TODO: fix newlines
+local text = "Lorem   \nipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" 
 local cursor = 10
 local hoverIndex = 0
 local lines = {} -- text split up into lines 
@@ -8,53 +9,14 @@ local fontSize = 18
 local width = 600
 local selectionEnd = 100
 
-function layoutText()
-  -- go through text, generate lines based off of character width of each.
-  -- ignore newlines for now!
-  lines = {}
-  lineWidth = 0
-  line = {}
-
-  table.insert(lines, line)
-  spaceWidth = font:getWidth(" ")
-
-  spaceLeft = width
-  for word in string.gmatch(text, "%S+") do
-    chars = {}
-    wordWidth = 0
-
-    for i = 1, #word do
-      char = word:sub(i, i)
-      charWidth = font:getWidth(char)
-      charData = {char = char, width = charWidth}
-      table.insert(chars, charData)
-      wordWidth = wordWidth + charWidth
-    end
-    table.insert(chars, {char = " ", width = spaceWidth})
-
-    if wordWidth + spaceWidth >= spaceLeft then
-      line = chars
-      table.insert(lines, line)
-      spaceLeft = width - (wordWidth + spaceWidth)
-    else
-      for k, char in ipairs(chars) do
-        table.insert(line, char)
-      end
-      spaceLeft = spaceLeft - (wordWidth + spaceWidth)
-    end
-  end
-end
-
 function love.load()
   font = love.graphics.newFont("Verdana.ttf", fontSize)
   love.graphics.setFont(font)
   start = love.timer.getTime()
-  layoutText()
 end
 
 function love.textinput(t)
   text = string.sub(text, 1, cursor) .. t .. string.sub(text, cursor + 1)
-  layoutText()
   cursor = cursor + 1
 end
 
@@ -75,7 +37,6 @@ function love.keypressed(key)
     else
        text = string.sub(text, 1, cursor - 2) .. string.sub(text, cursor)
     end
-    layoutText()
     cursor = cursor - 1
   end
 end
@@ -126,40 +87,31 @@ function love.mousepressed()
   end
 end
 
-
 function love.draw()
   love.graphics.clear()
   love.graphics.setColor(255, 255, 0)
 
   lineOffset = 0
+  xOffset = 0
   local chars = 1
   local selStart = {}
   local selEnd= {}
-  for i, line in ipairs(lines) do
-    charOffset = 0
 
-    for j, charData in ipairs(line) do
-      if chars == cursor then
-         selStart = {charData = charData, line = i, x = charOffset, y = lineOffset, width = charData.width}
-         if math.floor((love.timer.getTime() - start) * 2) % 2 == 0 then
-          love.graphics.rectangle("fill", charOffset, lineOffset, 1, fontSize * 1.4)
-        end         
-      end
+  word = {}
+  for i = 1, #text do
+    char = text:sub(i, i)
+    love.graphics.print(char, xOffset, lineOffset)
+    xOffset = xOffset + font:getWidth(char)
 
-      if chars == selectionEnd then
-          selEnd = {charData = charData, line = i, x = charOffset, y = lineOffset, width = charData.width}
-      end
-
-      love.graphics.print(charData.char, charOffset, lineOffset)
-
-      charOffset = charOffset + charData.width
-      chars = chars + 1
-    end
-    lineOffset = lineOffset + (fontSize * lineHeight)
+--[[     if i == cursor then
+      selStart = {charData = charData, line = i, x = charOffset, y = lineOffset, width = charData.width}
+      if math.floor((love.timer.getTime() - start) * 2) % 2 == 0 then
+      love.graphics.rectangle("fill", charOffset, lineOffset, 1, fontSize * 1.4)
+    end ]]
   end
 --  love.graphics.rectangle("fill", 0, 0, width, 10)
 
-  if selectionEnd then
+--[[   if selectionEnd then
       local numLines = selEnd.line - selStart.line
       love.graphics.setBlendMode("add")
       love.graphics.setColor(0, 0, 255)
@@ -175,5 +127,5 @@ function love.draw()
           love.graphics.rectangle("fill", 0, selEnd.y, selEnd.x , fontSize * lineHeight)
       end
       love.graphics.setBlendMode("alpha")
-  end
+  end ]]
 end
